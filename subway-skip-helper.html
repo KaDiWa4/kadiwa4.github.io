@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Subway Skip Helper</title>
+		<style>
+			body {
+				background-color: #0F0F0F;
+				box-sizing: border-box;
+				color: #EFEFEF;
+				display: flex;
+				flex-direction: column;
+				font-family: sans-serif;
+				height: 100vh;
+				margin: 0;
+				padding: 8px;
+			}
+
+			#timer {
+				cursor: pointer;
+				flex-grow: 1;
+			}
+
+			#circle-content {
+				background: conic-gradient(red 0.1turn, yellow, green 0.25turn 0.75turn, yellow, red 0.9turn);
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Subway Skip Helper</h1>
+		<svg id="timer" viewBox="0 0 255 255">
+			<defs>
+				<mask id="circle-mask">
+					<line id="clockhand" x2="127" y2="127" stroke-width="4" />
+					<circle cx="127" cy="127" r="96" fill="none" stroke="white" stroke-width="8" />
+				</mask>
+			</defs>
+
+			<g mask="url(#circle-mask)">
+				<foreignObject id="circle-content" width="255" height="255" />
+			</g>
+			<circle cx="127" cy="127" r="8" fill="#EFEFEF" />
+		</svg>
+		<script>
+			const OFFSET = -200; // in ms
+			const TIME_STAMP_TO_ANGLE_FACTOR = 0.001448374220096282; // 2 * Math.PI / (911000 / 210), cycle = 911000/210 ms
+
+			const timer = document.getElementById("timer");
+			const clockhand = document.getElementById("clockhand");
+
+			let startOffset = null;
+
+			document.onkeydown = function onkeydownHandler(event) {
+				if (event.key === " ") {
+					toggle();
+				}
+			};
+
+			timer.onmousedown = function onmousedownHandler(event) {
+				if (event.button === 0) {
+					toggle();
+				}
+			}
+
+			timer.ontouchstart = toggle;
+
+			function toggle() {
+				const start = startOffset === null;
+				clockhand.setAttribute("stroke", start ? "white" : "black");
+				startOffset = start ? performance.now() - OFFSET : null;
+				draw();
+			}
+
+			function draw(timeStamp = performance.now()) {
+				if (startOffset === null) {
+					return;
+				}
+
+				requestAnimationFrame(draw);
+
+				const angle = TIME_STAMP_TO_ANGLE_FACTOR * (timeStamp - startOffset);
+				clockhand.setAttribute("x1", 127 + 96 * Math.sin(angle));
+				clockhand.setAttribute("y1", 127 - 96 * Math.cos(angle));
+			}
+		</script>
+	</body>
+</html>
