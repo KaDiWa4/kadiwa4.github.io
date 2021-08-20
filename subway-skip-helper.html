@@ -14,6 +14,7 @@
 				font-family: sans-serif;
 				height: 100vh;
 				margin: 0;
+				overflow-x: hidden;
 				padding: 8px;
 			}
 
@@ -46,22 +47,31 @@
 			const OFFSET = -200; // in ms
 			const TIME_STAMP_TO_ANGLE_FACTOR = 0.001448374220096282; // 2 * Math.PI / (911000 / 210), cycle = 911000/210 ms
 
+			const body = document.body;
 			const timer = document.getElementById("timer");
 			const clockhand = document.getElementById("clockhand");
 
+			function resizeHandler() {
+				// window.innerHeight is better than 100vh on mobile
+				body.style.setProperty("height", `${window.innerHeight}px`);
+			}
+
+			window.onresize = resizeHandler;
+			resizeHandler();
+
 			let startOffset = null;
 
-			document.onkeydown = function onkeydownHandler(event) {
+			document.onkeydown = function keydownHandler(event) {
 				if (event.key === " ") {
 					toggle();
 				}
 			};
 
-			timer.onmousedown = function onmousedownHandler(event) {
-				if (event.button === 0) {
+			timer.onmousedown = function mousedownHandler(event) {
+				if (!("ontouchstart" in body) && event.button === 0) {
 					toggle();
 				}
-			}
+			};
 
 			timer.ontouchstart = toggle;
 
