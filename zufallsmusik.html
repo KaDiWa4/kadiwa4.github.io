@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			body {
+				background-color: #0F0F0F;
+				font-family: Arial;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+
+			#sound-button-container {
+				display: inline-block;
+			}
+
+			.button, .sound-button, #add-button {
+				width: 90px;
+				height: 90px;
+				margin: 10px;
+				display: inline-block;
+				text-align: center;
+				line-height: 90px;
+				vertical-align: middle;
+				position: relative;
+			}
+
+			.sound-button {
+				background-color: #EFEFEF;
+				font-size: 20pt;
+			}
+
+			#add-button {
+				background-color: #7F7F7F;
+				font-size: 40pt;
+				color: #3F3F3F;
+				margin: 6px;
+			}
+
+			.playing {
+				background-color: #5F5FEF;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="button-container">
+			<div id="sound-button-container"></div>
+			<div id="add-button" onclick="addButton();">+</div>
+		</div>
+		<script>
+			const buttonContainer = document.getElementById("sound-button-container");
+			const sounds = ["A", "B", "H", "C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯"];
+			const audioContext = new AudioContext();
+			let buttons = {};
+			let nextButtonID = 0;
+
+			let count = 4;
+			let minSounds = 2;
+			let maxSounds = 8;
+			let minLength = 0.25;
+			let maxLength = 0.75;
+			let soundRange = 6;
+
+			function regenerate() {
+				buttonContainer.innerHTML = "";
+				buttons = {};
+				for (let i = 0; i < count; i += 1) {
+					addButton();
+				}
+			}
+
+			function addButton() {
+				const id = nextButtonID;
+				nextButtonID += 1;
+				const div = document.createElement("div");
+				div.classList.add("sound-button");
+				div.dataset.id = id;
+
+				const soundFactors = [];
+				const sounds = Math.floor((maxSounds - minSounds + 1) * Math.random()) + minSounds - 1;
+
+				for (let j = 0; j < sounds; j += 1) {
+					const offset = Math.floor((2 * soundRange + 1) * Math.random()) - soundRange;
+					soundFactors.push(2 ** (offset / 12));
+				}
+
+				div.onclick = sound;
+				buttonContainer.appendChild(div);
+
+				buttons[id] = {
+					soundFactors,
+					soundLength: 1000 * (minLength + Math.floor((4 * (maxLength - minLength) + 1) * Math.random()) / 4),
+					startSound: 220 * (2 ** (Math.floor(24 * Math.random()) / 12)),
+				};
+			}
+
+			regenerate();
+
+			function duration(milliseconds) {
+				return new Promise((resolve) => setTimeout(resolve, milliseconds));
+			}
+
+			async function sound(event) {
+				const div = event.target;
+				const { soundFactors, soundLength, startSound } = buttons[div.dataset.id];
+				const oscillator = audioContext.createOscillator();
+				oscillator.frequency.value = startSound;
+				oscillator.connect(audioContext.destination);
+				oscillator.start();
+				div.classList.add("playing");
+				showSound(startSound, div);
+
+				for (let factor of soundFactors) {
+					await duration(soundLength);
+					oscillator.frequency.value = startSound * factor;
+					showSound(oscillator.frequency.value, div);
+				}
+
+				await duration(soundLength);
+
+				div.classList.remove("playing");
+				div.innerHTML = "";
+				console.log();
+				oscillator.stop();
+			}
+
+			function showSound(frequency, div) {
+				const sound = sounds[(Math.round(12 * Math.log2(frequency / 220)) + 24) % 12];
+				div.innerHTML = sound;
+				console.log(sound);
+			}
+		</script>
+	</body>
+</html>
