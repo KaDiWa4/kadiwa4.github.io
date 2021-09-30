@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1.0" />
 		<style>
 			body {
 				background-color: #0F0F0F;
@@ -54,17 +55,25 @@
 			let buttons = {};
 			let nextButtonID = 0;
 
-			let count = 4;
 			let minSounds = 2;
 			let maxSounds = 8;
 			let minLength = 0.25;
 			let maxLength = 0.75;
 			let soundRange = 6;
+			let base = 12;
+
+			console.log(
+`minSounds: Minimum an Tönen pro Knopf
+maxSounds: Maximum an Tönen pro Knopf
+minLength: Minimale Tonlänge
+maxLength: Maximale Tonlänge
+soundRange: Entfernung der Töne vom ersten Ton (gemessen in Halbtönen)
+`);
 
 			function regenerate() {
 				buttonContainer.innerHTML = "";
 				buttons = {};
-				for (let i = 0; i < count; i += 1) {
+				for (let i = 0; i < 4; i += 1) {
 					addButton();
 				}
 			}
@@ -81,7 +90,7 @@
 
 				for (let j = 0; j < sounds; j += 1) {
 					const offset = Math.floor((2 * soundRange + 1) * Math.random()) - soundRange;
-					soundFactors.push(2 ** (offset / 12));
+					soundFactors.push(2 ** (offset / base));
 				}
 
 				div.onclick = sound;
@@ -90,7 +99,7 @@
 				buttons[id] = {
 					soundFactors,
 					soundLength: 1000 * (minLength + Math.floor((4 * (maxLength - minLength) + 1) * Math.random()) / 4),
-					startSound: 220 * (2 ** (Math.floor(24 * Math.random()) / 12)),
+					startSound: 220 * (2 ** (Math.floor(24 * Math.random()) / base)),
 				};
 			}
 
@@ -125,7 +134,7 @@
 			}
 
 			function showSound(frequency, div) {
-				const sound = sounds[(Math.round(12 * Math.log2(frequency / 220)) + 24) % 12];
+				const sound = sounds[(Math.round(base * Math.log2(frequency / 220)) + 24) % base];
 				div.innerHTML = sound;
 				console.log(sound);
 			}
