@@ -130,25 +130,31 @@ soundRange: Entfernung der Töne vom ersten Ton (gemessen in Halbtönen)
 			async function sound(event) {
 				const div = event.target;
 				const { soundFactors, soundLength, startSound } = buttons[div.dataset.id];
-				const oscillator = audioContext.createOscillator();
 				const startFrequency = 440 * (2 ** (startSound / base));
-				oscillator.frequency.value = startFrequency;
-				oscillator.connect(audioContext.destination);
+				const oscillator = new OscillatorNode(audioContext, { frequency: startFrequency });
+				const gainNode = new GainNode(audioContext, { gain: 0 });
+				gainNode.connect(audioContext.destination);
+				oscillator.connect(gainNode);
 				oscillator.start();
+				gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.01);
 				div.classList.add("playing");
 				showSound(startSound, div);
 
 				for (let factor of soundFactors) {
-					await duration(soundLength);
+					await duration(soundLength - 10);
+					gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.01);
+					await duration(10);
 					oscillator.frequency.value = startFrequency * (2 ** (factor / base));
+					gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.01);
 					showSound(startSound + factor, div);
 				}
 
 				await duration(soundLength);
 
 				div.classList.remove("playing");
-				div.innerHTML = "";
-				console.log();
+				div.textContent = "";
+				gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.010);
+				await duration(20);
 				oscillator.stop();
 			}
 
