@@ -153,8 +153,8 @@ soundRange: Entfernung der Töne vom ersten Ton (gemessen in Halbtönen)
 
 				div.classList.remove("playing");
 				div.textContent = "";
-				gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.010);
-				await duration(20);
+				gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.01);
+				await duration(100);
 				oscillator.stop();
 			}
 
