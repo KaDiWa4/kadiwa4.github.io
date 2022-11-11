@@ -23,24 +23,27 @@
 			}
 
 			#circle-content {
+				width: 256px;
+				height: 256px;
 				background: conic-gradient(red 0.1turn, yellow, green 0.25turn 0.75turn, yellow, red 0.9turn);
 			}
 		</style>
 	</head>
 	<body>
 		<h1>Subway Skip Helper</h1>
-		<svg id="timer" viewBox="0 0 255 255">
+		<svg id="timer" viewBox="0 0 256 256">
 			<defs>
 				<mask id="circle-mask">
-					<line id="clockhand" x2="127" y2="127" stroke-width="4" />
-					<circle cx="127" cy="127" r="96" fill="none" stroke="white" stroke-width="8" />
+					<line id="clockhand" x2="128" y2="128" stroke-width="4" />
+					<circle cx="128" cy="128" r="96" fill="none" stroke="white" stroke-width="8" />
 				</mask>
 			</defs>
 
-			<g mask="url(#circle-mask)">
-				<foreignObject id="circle-content" width="255" height="255" />
-			</g>
-			<circle cx="127" cy="127" r="8" fill="#EFEFEF" />
+			<path d="M128,128L42,84M128,128L214,84z" stroke="#EFEFEF" stroke-width="3" />
+			<foreignObject mask="url(#circle-mask)" width="256" height="256">
+				<div id="circle-content"></div>
+			</foreignObject>
+			<circle cx="128" cy="128" r="8" fill="#EFEFEF" />
 		</svg>
 		<script>
 			const OFFSET = -200; // in ms
