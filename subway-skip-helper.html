@@ -1,151 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<title>Subway Skip Helper</title>
-		<style>
-			body {
-				background-color: #0F0F0F;
-				box-sizing: border-box;
-				color: #EFEFEF;
-				display: flex;
-				flex-direction: column;
-				font-family: sans-serif;
-				height: 100vh;
-				margin: 0;
-				padding: 8px;
-				text-align: center;
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<title>Subway Skip Helper</title>
+	<style>
+		body {
+			background-color: #0F0F0F;
+			box-sizing: border-box;
+			color: #EFEFEF;
+			display: flex;
+			flex-direction: column;
+			font-family: sans-serif;
+			height: 100vh;
+			margin: 0;
+			padding: 8px;
+			text-align: center;
+		}
+
+		#timer {
+			cursor: pointer;
+			flex-grow: 1;
+		}
+
+		@keyframes big-center-circle {
+			from { r: 8px; }
+			2% { r: 48px; }
+			98% { r: 48px; }
+			to { r: 8px; }
+		}
+
+		#center-circle.big {
+			animation: 26s ease-in-out big-center-circle;
+		}
+
+		@keyframes countdown {
+			from { opacity: 0; }
+			1% { opacity: 1; }
+			99% { opacity: 1; }
+			to { opacity: 0; }
+		}
+
+		#countdown {
+			font-family: monospace;
+			font-size: 40pt;
+			opacity: 0;
+		}
+
+		#countdown.active {
+			animation: 25.2s ease-in-out 0.4s countdown;
+		}
+
+		@keyframes visible-clockhand {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+
+		#clockhand {
+			opacity: 0;
+		}
+
+		#clockhand.visible {
+			animation: 0.2s ease-in-out 25.8s forwards visible-clockhand;
+		}
+	</style>
+</head>
+
+<body>
+	<noscript>Please enable JavaScript.<br><br><br></noscript>
+	<h1>Subway Skip Helper</h1>
+	<svg id="timer" viewBox="0 0 256 256">
+		<path d="M128,128L42,84A96 96 0 0 1 214 84z" fill="#7F0000"></path>
+		<path d="M128,128L42,84A96 96 0 1 0 214 84z" fill="#007F00"></path>
+		<path d="M42,84L128,128L214,84" fill="none" stroke="#EFEFEF" stroke-width="4"></path>
+		<path id="clockhand" d="M121,128V64l7,-7l7,7V128z" stroke="#7F7F7F"></path>
+		<circle cx="128" cy="128" r="96" fill="none" stroke="#EFEFEF" stroke-width="8"></circle>
+		<circle id="center-circle" cx="128" cy="128" r="8" fill="#EFEFEF"></circle>
+		<text id="countdown" x="128" y="128" dominant-baseline="central" text-anchor="middle"></text>
+	</svg>
+	<script>
+		const OFFSET = -200; // in ms
+		const CYCLE_LENGTH = 91100 / 21; // in ms
+		const INITIAL_WAIT = 25800; // in ms
+
+		const timer = document.getElementById("timer");
+		const clockhand = document.getElementById("clockhand");
+		const centerCircle = document.getElementById("center-circle");
+		const countdown = document.getElementById("countdown");
+
+		function resizeHandler() {
+			// window.innerHeight is better than 100vh on mobile
+			document.body.style.setProperty("height", `${window.innerHeight}px`);
+		}
+
+		window.onresize = resizeHandler;
+		resizeHandler();
+
+		let startOffset = null;
+		let drawClockhandTimeout = null;
+
+		function drawCountdown() {
+			if (startOffset === null) {
+				return;
+			}
+			const timeStamp = performance.now();
+			const remaining = startOffset + INITIAL_WAIT - timeStamp;
+			if (remaining < 0) {
+				return;
+			}
+			setTimeout(drawCountdown, remaining % 1000 + 1);
+			countdown.textContent = Math.ceil(remaining / 1000).toString().padStart(2, "0");
+		}
+
+		function drawClockhand(timeStamp = performance.now()) {
+			if (startOffset === null) {
+				return;
 			}
 
-			#timer {
-				cursor: pointer;
-				flex-grow: 1;
-			}
+			requestAnimationFrame(drawClockhand);
 
-			@keyframes big-center-circle {
-				from { r: 8px; }
-				2% { r: 48px; }
-				98% { r: 48px; }
-				to { r: 8px; }
-			}
+			const angle = (360 / CYCLE_LENGTH * (timeStamp - startOffset)) % 360;
+			clockhand.setAttribute("transform", `rotate(${angle.toFixed(2)}, 128, 128)`)
+		}
 
-			#center-circle.big {
-				animation: 26s ease-in-out big-center-circle;
-			}
-
-			@keyframes countdown {
-				from { opacity: 0; }
-				1% { opacity: 1; }
-				99% { opacity: 1; }
-				to { opacity: 0; }
-			}
-
-			#countdown {
-				font-family: monospace;
-				font-size: 40pt;
-				opacity: 0;
-			}
-
-			#countdown.active {
-				animation: 25.2s ease-in-out 0.4s countdown;
-			}
-
-			@keyframes visible-clockhand {
-				from { opacity: 0; }
-				to { opacity: 1; }
-			}
-
-			#clockhand {
-				opacity: 0;
-			}
-
-			#clockhand.visible {
-				animation: 0.2s ease-in-out 25.8s forwards visible-clockhand;
-			}
-		</style>
-	</head>
-	<body>
-		<noscript>Please enable JavaScript.<br><br><br></noscript>
-		<h1>Subway Skip Helper</h1>
-		<svg id="timer" viewBox="0 0 256 256">
-			<path d="M128,128L42,84A96 96 0 0 1 214 84z" fill="#7F0000" />
-			<path d="M128,128L42,84A96 96 0 1 0 214 84z" fill="#007F00" />
-			<path d="M128,128L42,84M128,128L214,84z" stroke="#EFEFEF" stroke-width="4" />
-			<path id="clockhand" d="M121,128V64l7,-7l7,7V128z" stroke="#7F7F7F" />
-			<circle cx="128" cy="128" r="96" fill="none" stroke="#EFEFEF" stroke-width="8" />
-			<circle id="center-circle" cx="128" cy="128" r="8" fill="#EFEFEF" />
-			<text id="countdown" x="128" y="128" dominant-baseline="central" text-anchor="middle" />
-		</svg>
-		<script>
-			const OFFSET = -200; // in ms
-			const CYCLE_LENGTH = 4338.0952380952385; // in ms, 91100/21
-			const INITIAL_WAIT = 25800; // in ms
-
-			const body = document.body;
-			const timer = document.getElementById("timer");
-			const clockhand = document.getElementById("clockhand");
-			const centerCircle = document.getElementById("center-circle");
-			const countdown = document.getElementById("countdown");
-
-			function resizeHandler() {
-				// window.innerHeight is better than 100vh on mobile
-				body.style.setProperty("height", `${window.innerHeight}px`);
-			}
-
-			window.onresize = resizeHandler;
-			resizeHandler();
-
-			let startOffset = null;
-
-			document.onkeydown = function keydownHandler(event) {
-				if (event.key === " ") {
-					toggle();
-				}
-			};
-
-			timer.onmousedown = function mousedownHandler(event) {
-				if (!("ontouchstart" in body) && event.button === 0) {
-					toggle();
-				}
-			};
-
-			timer.ontouchstart = toggle;
-
-			function toggle() {
-				const start = startOffset === null;
-				clockhand.classList.toggle("visible");
-				centerCircle.classList.toggle("big");
-				countdown.classList.toggle("active");
-				startOffset = start ? performance.now() - OFFSET : null;
-				setTimeout(drawClockhand, INITIAL_WAIT);
+		function toggle() {
+			clockhand.classList.toggle("visible");
+			centerCircle.classList.toggle("big");
+			countdown.classList.toggle("active");
+			if (startOffset === null) {
+				startOffset = performance.now() - OFFSET;
+				drawClockhandTimeout = setTimeout(drawClockhand, INITIAL_WAIT);
 				drawCountdown();
+			} else {
+				startOffset = null;
+				clearTimeout(drawClockhandTimeout);
+				drawClockhandTimeout = null;
 			}
+		}
 
-			function drawCountdown() {
-				if (startOffset === null) {
-					return;
-				}
-				const timeStamp = performance.now();
-				const remaining = startOffset + INITIAL_WAIT - timeStamp;
-				console.log(remaining);
-				if (remaining < 0) {
-					return;
-				}
-				setTimeout(drawCountdown, remaining % 1000 + 1);
-				countdown.textContent = Math.ceil(remaining / 1000).toString().padStart(2, "0");
+		document.onkeydown = function keydownHandler(event) {
+			if (event.key === " ") {
+				toggle();
 			}
+		};
 
-			function drawClockhand(timeStamp = performance.now()) {
-				if (startOffset === null) {
-					return;
+		if ("ontouchstart" in document.body) {
+			timer.ontouchstart = toggle;
+		} else {
+			timer.onmousedown = function mousedownHandler(event) {
+				if (event.button === 0) {
+					toggle();
 				}
+			};
+		}
+	</script>
+</body>
 
-				requestAnimationFrame(drawClockhand);
-
-				const angle = (360 / CYCLE_LENGTH * (timeStamp - startOffset)) % 360;
-				clockhand.setAttribute("transform", `rotate(${angle.toFixed(2)}, 128, 128)`)
-			}
-		</script>
-	</body>
 </html>
